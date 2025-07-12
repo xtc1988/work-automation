@@ -1,0 +1,91 @@
+name: Update Wiki Information
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # 6時間毎に実行
+  workflow_dispatch:  # 手動実行可能
+
+jobs:
+  update-wiki:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Create data directory if not exists
+        run: mkdir -p data
+
+      - name: Fetch Confluence Data
+        env:
+          CONFLUENCE_BASE_URL: ${{ secrets.CONFLUENCE_BASE_URL }}
+          CONFLUENCE_TOKEN: ${{ secrets.CONFLUENCE_TOKEN }}
+          CONFLUENCE_USERNAME: ${{ secrets.CONFLUENCE_USERNAME }}
+        run: |
+          if [ -n "$CONFLUENCE_TOKEN" ]; then
+            echo "Fetching Confluence data..."
+            node scripts/fetch-confluence.js
+          else
+            echo "Confluence token not configured, skipping..."
+          fi
+        continue-on-error: true
+
+      - name: Fetch GitHub Wiki Data
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Fetching GitHub Wiki data..."
+          node scripts/fetch-github-wiki.js
+        continue-on-error: true
+
+      - name: Fetch Notion Data
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        run: |
+          if [ -n "$NOTION_TOKEN" ]; then
+            echo "Fetching Notion data..."
+            node scripts/fetch-notion.js
+          else
+            echo "Notion token not configured, skipping..."
+          fi
+        continue-on-error: true
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if [ -f "data/wiki-cache.json" ]; then
+            if git diff --quiet data/wiki-cache.json; then
+              echo "changes=false" >> $GITHUB_OUTPUT
+              echo "No changes detected in wiki cache"
+            else
+              echo "changes=true" >> $GITHUB_OUTPUT
+              echo "Changes detected in wiki cache"
+            fi
+          else
+            echo "changes=true" >> $GITHUB_OUTPUT
+            echo "Wiki cache file created"
+          fi
+
+      - name: Commit and push changes
+        if: steps.changes.outputs.changes == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add data/wiki-cache.json
+          git commit -m "Update wiki data - $(date '+%Y-%m-%d %H:%M:%S UTC')" || exit 0
+          git push
+
+      - name: Log completion
+        run: |
+          echo "Wiki data update completed at $(date)"
+          if [ -f "data/wiki-cache.json" ]; then
+            echo "Cache file size: $(du -h data/wiki-cache.json | cut -f1)"
+            echo "Environment count: $(jq '.environments | length' data/wiki-cache.json)"
+          fi

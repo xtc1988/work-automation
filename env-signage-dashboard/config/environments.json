@@ -1,0 +1,20 @@
+{
+  "environments": [
+    {
+      "id": "dev",
+      "name": "開発環境",
+      "url": "https://dev.example.com",
+      "healthCheck": "https://dev.example.com/health",
+      "services": [
+        {
+          "name": "API Server",
+          "url": "https://api.dev.example.com/health"
+        },
+        {
+          "name": "Database",
+          "url": "https://db.dev.example.com/status"
+        }
+      ]
+    }
+  ]
+}

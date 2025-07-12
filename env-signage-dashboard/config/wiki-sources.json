@@ -1,0 +1,44 @@
+{
+  "sources": [
+    {
+      "type": "confluence",
+      "name": "開発環境一覧",
+      "url": "https://yourcompany.atlassian.net/wiki/spaces/DEV/pages/123456",
+      "auth": {
+        "type": "api_token",
+        "token_env": "CONFLUENCE_TOKEN"
+      },
+      "parser": {
+        "table_selector": "table.confluenceTable",
+        "columns": {
+          "name": 0,
+          "url": 1,
+          "login_user": 2,
+          "login_pass": 3,
+          "description": 4
+        }
+      }
+    },
+    {
+      "type": "github_wiki",
+      "name": "QA環境一覧",
+      "url": "https://github.com/yourcompany/project/wiki/QA-Environments",
+      "auth": {
+        "type": "github_token",
+        "token_env": "GITHUB_TOKEN"
+      },
+      "parser": {
+        "format": "markdown_table"
+      }
+    },
+    {
+      "type": "notion",
+      "name": "本番環境情報",
+      "database_id": "abcd1234-5678-90ef-ghij-klmnopqrstuv",
+      "auth": {
+        "type": "notion_token", 
+        "token_env": "NOTION_TOKEN"
+      }
+    }
+  ]
+}

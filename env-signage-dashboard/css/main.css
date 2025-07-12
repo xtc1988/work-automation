@@ -1,0 +1,338 @@
+/* メインスタイル */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* ヘッダー */
+.header {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.header-info {
+    text-align: right;
+}
+
+.last-updated {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-bottom: 5px;
+}
+
+.status-summary {
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+/* ダッシュボード */
+.dashboard {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 15px;
+    height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+/* 環境カード */
+.environment-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    min-height: 120px;
+}
+
+.environment-card.expanded {
+    min-height: auto;
+}
+
+.environment-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* 状態別の境界線色 */
+.environment-card.healthy {
+    border-left: 6px solid #00ff88;
+}
+
+.environment-card.warning {
+    border-left: 6px solid #ffa500;
+}
+
+.environment-card.error {
+    border-left: 6px solid #ff4757;
+}
+
+.environment-card.maintenance {
+    border-left: 6px solid #747d8c;
+}
+
+/* カードヘッダー */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.env-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+}
+
+/* 状態インジケーター */
+.status-indicator {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+    flex-shrink: 0;
+}
+
+.status-indicator.healthy {
+    background-color: #00ff88;
+    box-shadow: 0 0 10px #00ff88;
+}
+
+.status-indicator.warning {
+    background-color: #ffa500;
+    box-shadow: 0 0 10px #ffa500;
+}
+
+.status-indicator.error {
+    background-color: #ff4757;
+    box-shadow: 0 0 10px #ff4757;
+}
+
+.status-indicator.maintenance {
+    background-color: #747d8c;
+    box-shadow: 0 0 10px #747d8c;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* カードサマリー */
+.card-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.service-count {
+    font-size: 0.9rem;
+    color: #e1e5e9;
+}
+
+.response-time {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #00ff88;
+}
+
+/* カードフッター */
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: #a8b2c1;
+}
+
+.last-check {
+    color: #a8b2c1;
+}
+
+.expand-icon {
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+}
+
+.environment-card.expanded .expand-icon {
+    transform: rotate(180deg);
+}
+
+/* カード詳細 */
+.card-details {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, padding 0.4s ease;
+    border-top: 1px solid transparent;
+    margin-top: 0;
+    opacity: 0;
+}
+
+.environment-card.expanded .card-details {
+    max-height: 600px;
+    padding-top: 15px;
+    margin-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    opacity: 1;
+}
+
+.env-url {
+    font-size: 0.9rem;
+    color: #a8b2c1;
+    margin-bottom: 15px;
+    word-break: break-all;
+}
+
+/* 詳細セクション */
+.detail-section {
+    margin-bottom: 15px;
+}
+
+.detail-label {
+    font-size: 0.8rem;
+    color: #a8b2c1;
+    margin-bottom: 5px;
+}
+
+.detail-value {
+    font-size: 0.9rem;
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 6px 10px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* コピーボタン */
+.copy-btn {
+    background: #3498db;
+    border: none;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.copy-btn:hover {
+    background: #2980b9;
+    transform: scale(1.05);
+}
+
+/* サービスリスト */
+.services-list {
+    margin-top: 10px;
+}
+
+.service-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    margin-bottom: 5px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 5px;
+    border-left: 3px solid;
+    font-size: 0.8rem;
+}
+
+.service-item.healthy {
+    border-left-color: #00ff88;
+}
+
+.service-item.warning {
+    border-left-color: #ffa500;
+}
+
+.service-item.error {
+    border-left-color: #ff4757;
+}
+
+.service-item.unknown {
+    border-left-color: #747d8c;
+}
+
+/* 自動更新インジケーター */
+.auto-refresh {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.refresh-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #00ff88;
+    margin-right: 8px;
+    animation: pulse 2s infinite;
+}
+
+/* スライドイン アニメーション */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* スクロールバーのスタイリング */
+.dashboard::-webkit-scrollbar {
+    width: 8px;
+}
+
+.dashboard::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.dashboard::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+.dashboard::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}

@@ -1,0 +1,89 @@
+{
+  "last_updated": "2025-07-12T10:30:00Z",
+  "environments": [
+    {
+      "id": "dev-api",
+      "name": "開発API環境",
+      "url": "https://api-dev.example.com",
+      "healthCheck": "https://api-dev.example.com/health",
+      "credentials": {
+        "username": "dev_user",
+        "password": "dev_pass_123",
+        "auth_type": "basic"
+      },
+      "description": "API開発用環境。毎日リセットされます。",
+      "access_notes": "VPN接続必須",
+      "source": {
+        "wiki": "confluence",
+        "page": "開発環境一覧",
+        "updated": "2025-07-11T15:20:00Z"
+      },
+      "services": [
+        {
+          "name": "API Server",
+          "url": "https://api-dev.example.com/health"
+        }
+      ]
+    },
+    {
+      "id": "dev-web",
+      "name": "DEV WEB",
+      "url": "https://web-dev.example.com",
+      "healthCheck": "https://web-dev.example.com/health",
+      "credentials": {
+        "username": "webdev",
+        "password": "web123!",
+        "auth_type": "basic"
+      },
+      "description": "Webアプリケーション開発環境",
+      "access_notes": "社内ネットワークからのみアクセス可能",
+      "source": {
+        "wiki": "confluence",
+        "page": "開発環境一覧",
+        "updated": "2025-07-11T15:20:00Z"
+      },
+      "services": [
+        {
+          "name": "Web Server",
+          "url": "https://web-dev.example.com/health"
+        },
+        {
+          "name": "CDN",
+          "url": "https://cdn-dev.example.com/health"
+        }
+      ]
+    },
+    {
+      "id": "staging",
+      "name": "STAGING",
+      "url": "https://staging.example.com",
+      "healthCheck": "https://staging.example.com/health",
+      "credentials": {
+        "username": "staging_user",
+        "password": "stg_secure_2024",
+        "auth_type": "basic"
+      },
+      "description": "ステージング環境。本番環境と同構成",
+      "access_notes": "Basic認証あり",
+      "source": {
+        "wiki": "github_wiki",
+        "page": "QA環境一覧",
+        "updated": "2025-07-11T16:00:00Z"
+      },
+      "services": [
+        {
+          "name": "API Server",
+          "url": "https://api.staging.example.com/health"
+        },
+        {
+          "name": "Database",
+          "url": "https://db.staging.example.com/health"
+        },
+        {
+          "name": "Search Engine",
+          "url": "https://search.staging.example.com/health"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>環境監視ダッシュボード</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    <div class="header">
+        <h1>🖥️ 環境監視ダッシュボード</h1>
+        <div class="header-info">
+            <div class="last-updated">最終更新: <span id="lastUpdated">2025-07-12 14:30:00</span></div>
+            <div class="status-summary">
+                <span style="color: #00ff88;">正常: <span id="healthyCount">5</span></span> | 
+                <span style="color: #ffa500;">警告: <span id="warningCount">2</span></span> | 
+                <span style="color: #ff4757;">エラー: <span id="errorCount">1</span></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard" id="dashboard">
+        <!-- 環境カードは JavaScript で動的生成 -->
+    </div>
+
+    <div class="auto-refresh">
+        <span class="refresh-indicator"></span>
+        自動更新中 (60秒間隔)
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/wiki-parser.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
