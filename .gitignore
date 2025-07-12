@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+work_automation/test_env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+work_automation/logs/*.log
+work_automation/logs/screenshots/*.png
+work_automation/logs/*.csv
+
+# Temporary files
+*.tmp
+*.temp
+
+# Git submodules
+rpc-class-finder/
+toggl-clone/
+
+# Claude settings
+.claude/settings.local.json
