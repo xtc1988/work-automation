@@ -4,6 +4,7 @@
 import time
 import logging
 import os
+import json
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from selenium import webdriver
@@ -49,6 +50,10 @@ class WorkTimeAutomation:
             # スクリーンショット保存用ディレクトリ
             self.screenshot_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs", "screenshots")
             os.makedirs(self.screenshot_dir, exist_ok=True)
+            
+            # エラー記録保存用ディレクトリ
+            self.error_records_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs", "error_records")
+            os.makedirs(self.error_records_dir, exist_ok=True)
             
         except Exception as e:
             self.logger.error(f"Chrome接続エラー: {e}")
@@ -3106,6 +3111,126 @@ class WorkTimeAutomation:
             self.save_screenshot("force_adjust_end_time_error")
             return False
 
+    def record_error_for_later_application(self, date: str, errors: List[str]) -> bool:
+        """エラーを記録して後で申請できるようにする"""
+        try:
+            # 無視すべきエラーをフィルタリング
+            filtered_errors = []
+            
+            for error in errors:
+                # 在宅/出社区分エラーは完全無視
+                if "在宅/出社区分が入力されていません" in error:
+                    self.logger.info(f"無視されたエラー: {error}")
+                    continue
+                
+                # 深夜勤務申請エラーの処理
+                if "深夜勤務申請が提出されていません" in error:
+                    # 終了時間をチェック
+                    end_time = self._get_current_end_time()
+                    if end_time:
+                        try:
+                            # 時刻を分単位に変換
+                            hour, minute = map(int, end_time.split(':'))
+                            end_minutes = hour * 60 + minute
+                            
+                            # 22:15以下の場合は無視
+                            if end_minutes <= 22 * 60 + 15:  # 22:15 = 1335分
+                                self.logger.info(f"深夜勤務申請エラーを無視（終了時間: {end_time} <= 22:15）")
+                                continue
+                        except Exception as e:
+                            self.logger.warning(f"終了時間の解析エラー: {e}")
+                
+                # その他のエラーは記録対象
+                filtered_errors.append(error)
+            
+            if not filtered_errors:
+                self.logger.info("記録すべきエラーはありません")
+                return True
+            
+            # エラー記録ファイルのパス
+            error_file = os.path.join(self.error_records_dir, f"{date}.json")
+            
+            # 既存の記録を読み込む
+            existing_records = []
+            if os.path.exists(error_file):
+                try:
+                    with open(error_file, 'r', encoding='utf-8') as f:
+                        existing_records = json.load(f)
+                except Exception as e:
+                    self.logger.warning(f"既存エラー記録の読み込みエラー: {e}")
+            
+            # 新しいエラー記録を追加
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            new_record = {
+                "timestamp": timestamp,
+                "errors": filtered_errors,
+                "status": "pending"  # pending, applied, resolved
+            }
+            
+            existing_records.append(new_record)
+            
+            # ファイルに保存
+            with open(error_file, 'w', encoding='utf-8') as f:
+                json.dump(existing_records, f, ensure_ascii=False, indent=2)
+            
+            self.logger.info(f"エラー記録を保存しました: {error_file}")
+            self.logger.info(f"記録されたエラー: {filtered_errors}")
+            
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"エラー記録の保存に失敗: {e}")
+            return False
+    
+    def _get_current_end_time(self) -> Optional[str]:
+        """現在の終了時間を取得"""
+        try:
+            # 終了時間フィールドを検索
+            end_time_field = None
+            field_patterns = [
+                ("name", "KNMTMRNGETDI"),
+                ("name", "end_time"),
+                ("css", "input[name*='ETDI']"),
+                ("xpath", "//input[contains(@name, 'ETDI')]")
+            ]
+            
+            for by_type, pattern in field_patterns:
+                try:
+                    if by_type == "name":
+                        end_time_field = self.driver.find_element(By.NAME, pattern)
+                    elif by_type == "css":
+                        end_time_field = self.driver.find_element(By.CSS_SELECTOR, pattern)
+                    elif by_type == "xpath":
+                        end_time_field = self.driver.find_element(By.XPATH, pattern)
+                    
+                    if end_time_field:
+                        value = end_time_field.get_attribute("value")
+                        if value:
+                            return value.strip()
+                except NoSuchElementException:
+                    continue
+            
+            return None
+            
+        except Exception as e:
+            self.logger.error(f"終了時間の取得エラー: {e}")
+            return None
+    
+    def get_error_records(self, date: str) -> List[Dict]:
+        """指定日のエラー記録を取得"""
+        try:
+            error_file = os.path.join(self.error_records_dir, f"{date}.json")
+            
+            if not os.path.exists(error_file):
+                return []
+            
+            with open(error_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+                
+        except Exception as e:
+            self.logger.error(f"エラー記録の読み込みエラー: {e}")
+            return []
+    
     def close(self):
         """ブラウザを閉じる"""
         if hasattr(self, 'driver'):

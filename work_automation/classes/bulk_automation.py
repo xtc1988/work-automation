@@ -194,6 +194,9 @@ class BulkWorkAutomation:
                     errors = self.automation.check_errors()
                 
                 if errors:
+                    # エラーを記録（申請対象のみ）
+                    self.automation.record_error_for_later_application(work_data['date'], errors)
+                    
                     # 特定のエラー以外の場合はスキップ
                     if self.automation.should_skip_date_for_errors(errors):
                         error_msg = f"スキップ対象エラー: {', '.join(errors)}"
