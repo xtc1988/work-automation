@@ -658,6 +658,104 @@ class BulkWorkAutomation:
         self.logger.error("全ての日付遷移試行が失敗しました")
         return False
 
+    def check_errors_only(self, start_date: str, end_date: str) -> Dict[str, List[str]]:
+        """指定期間のエラーチェックのみを実行
+        
+        Args:
+            start_date: 開始日（YYYY-MM-DD）
+            end_date: 終了日（YYYY-MM-DD）
+            
+        Returns:
+            日付とエラーリストの辞書
+        """
+        self.logger.info(f"エラーチェックモード: {start_date} から {end_date}")
+        
+        error_results = {}
+        current_date = datetime.strptime(start_date, '%Y-%m-%d')
+        end_date_obj = datetime.strptime(end_date, '%Y-%m-%d')
+        
+        while current_date <= end_date_obj:
+            date_str = current_date.strftime('%Y-%m-%d')
+            self.logger.info(f"=== {date_str} のエラーチェック ===")
+            
+            try:
+                # 日付を指定して遷移
+                if not self._navigate_to_specific_date(date_str):
+                    self.logger.error(f"{date_str} への遷移に失敗")
+                    error_results[date_str] = ["ページ遷移エラー"]
+                    current_date += timedelta(days=1)
+                    continue
+                
+                # エラーチェックを実行
+                errors = self.automation.check_errors()
+                
+                # 在宅/出社区分以外のエラーをフィルタリング
+                filtered_errors = []
+                for error in errors:
+                    if "在宅/出社区分が入力されていません" not in error:
+                        filtered_errors.append(error)
+                
+                if filtered_errors:
+                    self.logger.warning(f"{date_str}: {len(filtered_errors)}件のエラー検出")
+                    error_results[date_str] = filtered_errors
+                    # エラー記録も保存
+                    self.automation.record_error_for_later_application(date_str, filtered_errors)
+                else:
+                    self.logger.info(f"{date_str}: エラーなし")
+                    error_results[date_str] = []
+                
+            except Exception as e:
+                self.logger.error(f"{date_str} のエラーチェック中にエラー: {e}")
+                error_results[date_str] = [f"チェック中のエラー: {str(e)}"]
+            
+            # 次の日へ
+            current_date += timedelta(days=1)
+        
+        # 結果をCSVに保存
+        self._save_error_check_results(error_results, start_date, end_date)
+        
+        return error_results
+    
+    def _navigate_to_specific_date(self, target_date: str) -> bool:
+        """特定の日付に遷移"""
+        try:
+            # WorkTimeAutomationのメソッドを使用
+            return self.automation.navigate_to_date(target_date)
+        except Exception as e:
+            self.logger.error(f"日付遷移エラー: {e}")
+            return False
+    
+    def _save_error_check_results(self, error_results: Dict[str, List[str]], start_date: str, end_date: str):
+        """エラーチェック結果をCSVに保存"""
+        try:
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            output_file = Path(__file__).parent.parent / "logs" / f"error_check_{start_date}_to_{end_date}_{timestamp}.csv"
+            
+            with open(output_file, 'w', newline='', encoding='utf-8-sig') as f:
+                fieldnames = ['日付', 'エラー数', 'エラー内容']
+                writer = csv.DictWriter(f, fieldnames=fieldnames)
+                writer.writeheader()
+                
+                for date, errors in sorted(error_results.items()):
+                    if errors:
+                        for error in errors:
+                            writer.writerow({
+                                '日付': date,
+                                'エラー数': len(errors),
+                                'エラー内容': error
+                            })
+                    else:
+                        writer.writerow({
+                            '日付': date,
+                            'エラー数': 0,
+                            'エラー内容': 'エラーなし'
+                        })
+            
+            self.logger.info(f"エラーチェック結果を保存: {output_file}")
+            
+        except Exception as e:
+            self.logger.error(f"エラーチェック結果の保存エラー: {e}")
+    
     def _wait_for_input_elements_ready(self) -> bool:
         """入力要素が準備完了まで待機"""
         try:
