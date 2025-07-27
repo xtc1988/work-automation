@@ -1,0 +1,120 @@
+{
+  "environments": [
+    {
+      "id": "dev",
+      "name": "開発環境 (DEV)",
+      "displayName": "DEV",
+      "status": "operational",
+      "database": "Oracle",
+      "channel": "#dev-環境",
+      "version": "v8.2.1",
+      "url": "https://dev.example.com",
+      "healthCheck": "https://dev.example.com/health",
+      "services": [
+        { 
+          "name": "マルチカンパニー", 
+          "enabled": true
+        },
+        { 
+          "name": "マルチパーソン", 
+          "enabled": true
+        }
+      ],
+      "credentials": {
+        "username": "dev_user",
+        "password": "dev_password123"
+      },
+      "deployActions": [
+        { "name": "ユニットデプロイ", "endpoint": "/api/deploy/unit" },
+        { "name": "ユニットデプロイ（dbscript）", "endpoint": "/api/deploy/unit-db" }
+      ]
+    },
+    {
+      "id": "stg",
+      "name": "ステージング環境 (STG)",
+      "displayName": "STG",
+      "status": "warning",
+      "database": "Aurora",
+      "channel": "#stg-環境",
+      "version": "v7.5.3",
+      "url": "https://stg.example.com",
+      "healthCheck": "https://stg.example.com/health",
+      "services": [
+        { 
+          "name": "マルチカンパニー", 
+          "enabled": true
+        },
+        { 
+          "name": "マルチパーソン", 
+          "enabled": false
+        }
+      ],
+      "credentials": {
+        "username": "stg_user",
+        "password": "stg_password456"
+      },
+      "deployActions": [
+        { "name": "ユニットデプロイ", "endpoint": "/api/deploy/unit" },
+        { "name": "ユニットデプロイ（dbscript）", "endpoint": "/api/deploy/unit-db" }
+      ]
+    },
+    {
+      "id": "uat",
+      "name": "UAT環境 (UAT)",
+      "displayName": "UAT",
+      "status": "operational",
+      "database": "Aurora",
+      "channel": "#uat-環境",
+      "version": "v8.1.0",
+      "url": "https://uat.example.com",
+      "healthCheck": "https://uat.example.com/health",
+      "services": [
+        { 
+          "name": "マルチカンパニー", 
+          "enabled": false
+        },
+        { 
+          "name": "マルチパーソン", 
+          "enabled": false
+        }
+      ],
+      "credentials": {
+        "username": "uat_user",
+        "password": "uat_password789"
+      },
+      "deployActions": [
+        { "name": "ユニットデプロイ", "endpoint": "/api/deploy/unit" },
+        { "name": "ユニットデプロイ（dbscript）", "endpoint": "/api/deploy/unit-db" }
+      ]
+    },
+    {
+      "id": "demo",
+      "name": "デモ環境 (DEMO)",
+      "displayName": "DEMO",
+      "status": "error",
+      "database": "Oracle",
+      "channel": "#demo-環境",
+      "version": "v6.9.2",
+      "url": "https://demo.example.com",
+      "healthCheck": "https://demo.example.com/health",
+      "services": [
+        { 
+          "name": "マルチカンパニー", 
+          "enabled": true
+        },
+        { 
+          "name": "マルチパーソン", 
+          "enabled": false
+        }
+      ],
+      "credentials": {
+        "username": "demo_user",
+        "password": "demo_password000"
+      },
+      "deployActions": [
+        { "name": "ユニットデプロイ", "endpoint": "/api/deploy/unit" },
+        { "name": "ユニットデプロイ（dbscript）", "endpoint": "/api/deploy/unit-db" }
+      ]
+    }
+  ]
+}

@@ -61,72 +61,39 @@ class EnvironmentDashboard {
         try {
             console.log('Loading environments data');
             
-            // ダミーデータ（実際にはAPIから取得）
-            this.environments = [
-                {
-                    id: 'dev',
-                    name: '開発環境 (DEV)',
-                    displayName: 'DEV',
-                    status: 'operational',
-                    database: 'Oracle',
-                    channel: '#dev-環境',
-                    version: 'v8.2.1',
-                    url: 'https://dev.example.com',
-                    services: [
-                        { name: 'マルチカンパニー', enabled: true },
-                        { name: 'マルチパーソン', enabled: true }
-                    ]
-                },
-                {
-                    id: 'stg',
-                    name: 'ステージング環境 (STG)',
-                    displayName: 'STG',
-                    status: 'warning',
-                    database: 'Aurora',
-                    channel: '#stg-環境',
-                    version: 'v7.5.3',
-                    url: 'https://stg.example.com',
-                    services: [
-                        { name: 'マルチカンパニー', enabled: true },
-                        { name: 'マルチパーソン', enabled: false }
-                    ]
-                },
-                {
-                    id: 'uat',
-                    name: 'UAT環境 (UAT)',
-                    displayName: 'UAT',
-                    status: 'operational',
-                    database: 'Aurora',
-                    channel: '#uat-環境',
-                    version: 'v8.1.0',
-                    url: 'https://uat.example.com',
-                    services: [
-                        { name: 'マルチカンパニー', enabled: false },
-                        { name: 'マルチパーソン', enabled: false }
-                    ]
-                },
-                {
-                    id: 'demo',
-                    name: 'デモ環境 (DEMO)',
-                    displayName: 'DEMO',
-                    status: 'error',
-                    database: 'Oracle',
-                    channel: '#demo-環境',
-                    version: 'v6.9.2',
-                    url: 'https://demo.example.com',
-                    services: [
-                        { name: 'マルチカンパニー', enabled: true },
-                        { name: 'マルチパーソン', enabled: false }
-                    ]
-                }
-            ];
+            // JSONファイルから環境データを取得
+            const response = await fetch('/data/environments.json');
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
             
-            console.log(`Loaded ${this.environments.length} environments`);
+            const data = await response.json();
+            this.environments = data.environments || [];
+            
+            console.log(`Loaded ${this.environments.length} environments from JSON file`);
             this.filteredEnvironments = [...this.environments];
         } catch (error) {
-            console.error('Failed to load environments:', error);
+            console.error('Failed to load environments from JSON:', error);
+            
+            // フォールバック: 最小限のダミーデータ
             this.environments = [];
             this.filteredEnvironments = [];
+            
+            // エラーメッセージを表示
+            this.showError('環境データの読み込みに失敗しました');
+        }
+    }
+
+    // エラー表示メソッド
+    showError(message) {
+        console.error(message);
+        if (this.elements.environmentsGrid) {
+            this.elements.environmentsGrid.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: #ef4444;">
+                    <h3>エラー</h3>
+                    <p>${message}</p>
+                </div>
+            `;
         }
     }
 

@@ -23,127 +23,38 @@ const logMessage = (level, message, data = null) => {
     console.log(JSON.stringify(logEntry));
 };
 
-// 環境データのサンプル
-const environmentsData = {
-    environments: [
-        {
-            id: 'dev',
-            name: '開発環境 (DEV)',
-            displayName: 'DEV',
-            status: 'operational',
-            database: 'Oracle',
-            channel: '#dev-環境',
-            version: 'v8.2.1',
-            url: 'https://dev.example.com',
-            healthCheck: 'https://dev.example.com/health',
-            services: [
-                { 
-                    name: 'マルチカンパニー', 
-                    enabled: true
-                },
-                { 
-                    name: 'マルチパーソン', 
-                    enabled: true
-                }
-            ],
-            credentials: {
-                username: 'dev_user',
-                password: 'dev_password123'
-            },
-            deployActions: [
-                { name: 'ユニットデプロイ', endpoint: '/api/deploy/unit' },
-                { name: 'ユニットデプロイ（dbscript）', endpoint: '/api/deploy/unit-db' }
-            ]
-        },
-        {
-            id: 'stg',
-            name: 'ステージング環境 (STG)',
-            displayName: 'STG',
-            status: 'warning',
-            database: 'Aurora',
-            channel: '#stg-環境',
-            version: 'v7.5.3',
-            url: 'https://stg.example.com',
-            healthCheck: 'https://stg.example.com/health',
-            services: [
-                { 
-                    name: 'マルチカンパニー', 
-                    enabled: true
-                },
-                { 
-                    name: 'マルチパーソン', 
-                    enabled: false
-                }
-            ],
-            credentials: {
-                username: 'stg_user',
-                password: 'stg_password456'
-            },
-            deployActions: [
-                { name: 'ユニットデプロイ', endpoint: '/api/deploy/unit' },
-                { name: 'ユニットデプロイ（dbscript）', endpoint: '/api/deploy/unit-db' }
-            ]
-        },
-        {
-            id: 'uat',
-            name: 'UAT環境 (UAT)',
-            displayName: 'UAT',
-            status: 'operational',
-            database: 'Aurora',
-            channel: '#uat-環境',
-            version: 'v8.1.0',
-            url: 'https://uat.example.com',
-            healthCheck: 'https://uat.example.com/health',
-            services: [
-                { 
-                    name: 'マルチカンパニー', 
-                    enabled: false
-                },
-                { 
-                    name: 'マルチパーソン', 
-                    enabled: false
-                }
-            ],
-            credentials: {
-                username: 'uat_user',
-                password: 'uat_password789'
-            },
-            deployActions: [
-                { name: 'ユニットデプロイ', endpoint: '/api/deploy/unit' },
-                { name: 'ユニットデプロイ（dbscript）', endpoint: '/api/deploy/unit-db' }
-            ]
-        },
-        {
-            id: 'demo',
-            name: 'デモ環境 (DEMO)',
-            displayName: 'DEMO',
-            status: 'error',
-            database: 'Oracle',
-            channel: '#demo-環境',
-            version: 'v6.9.2',
-            url: 'https://demo.example.com',
-            healthCheck: 'https://demo.example.com/health',
-            services: [
-                { 
-                    name: 'マルチカンパニー', 
-                    enabled: true
-                },
-                { 
-                    name: 'マルチパーソン', 
-                    enabled: false
-                }
-            ],
-            credentials: {
-                username: 'demo_user',
-                password: 'demo_password000'
-            },
-            deployActions: [
-                { name: 'ユニットデプロイ', endpoint: '/api/deploy/unit' },
-                { name: 'ユニットデプロイ（dbscript）', endpoint: '/api/deploy/unit-db' }
-            ]
-        }
-    ]
+// 環境データをJSONファイルから読み込む関数
+let environmentsData = { environments: [] };
+
+const loadEnvironmentsData = async () => {
+    try {
+        const data = await fs.readFile(path.join(__dirname, 'data', 'environments.json'), 'utf8');
+        environmentsData = JSON.parse(data);
+        logMessage('info', `Loaded ${environmentsData.environments.length} environments from JSON file`);
+    } catch (error) {
+        logMessage('error', 'Failed to load environments.json', { error: error.message });
+        // フォールバック: 空のデータ
+        environmentsData = { environments: [] };
+    }
 };
+
+// 環境データの保存
+const saveEnvironmentsData = async () => {
+    try {
+        await fs.writeFile(
+            path.join(__dirname, 'data', 'environments.json'), 
+            JSON.stringify(environmentsData, null, 2),
+            'utf8'
+        );
+        logMessage('info', 'Environments data saved to JSON file');
+    } catch (error) {
+        logMessage('error', 'Failed to save environments.json', { error: error.message });
+    }
+};
+
+// サーバー起動時に環境データを読み込み
+loadEnvironmentsData();
+
 
 // API エンドポイント
 
@@ -263,7 +174,7 @@ app.get('/api/deploy/:deploymentId/status', (req, res) => {
 });
 
 // ステータス更新（管理用）
-app.put('/api/environments/:id/status', (req, res) => {
+app.put('/api/environments/:id/status', async (req, res) => {
     const envId = req.params.id;
     const { status } = req.body;
     
@@ -279,12 +190,15 @@ app.put('/api/environments/:id/status', (req, res) => {
     
     environment.status = status;
     
+    // JSONファイルに保存
+    await saveEnvironmentsData();
+    
     logMessage('info', `Environment status updated: ${envId} -> ${status}`);
     res.json({ message: 'Status updated successfully', environment });
 });
 
 // サービスステータス更新（管理用）
-app.put('/api/environments/:id/services/:serviceName/status', (req, res) => {
+app.put('/api/environments/:id/services/:serviceName/status', async (req, res) => {
     const { id: envId, serviceName } = req.params;
     const { status } = req.body;
     
@@ -304,7 +218,10 @@ app.put('/api/environments/:id/services/:serviceName/status', (req, res) => {
         return res.status(400).json({ error: 'Invalid status' });
     }
     
-    service.status = status;
+    service.enabled = status === 'operational';
+    
+    // JSONファイルに保存
+    await saveEnvironmentsData();
     
     logMessage('info', `Service status updated: ${envId}/${serviceName} -> ${status}`);
     res.json({ message: 'Service status updated successfully', service });
